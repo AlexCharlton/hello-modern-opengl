@@ -1,4 +1,3 @@
-// Include standard headers
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -291,7 +290,7 @@ int main(void){
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    window = glfwCreateWindow( 640, 480, "Tutorial 03 - Matrices", NULL, NULL);
+    window = glfwCreateWindow( 640, 480, "Hello GL", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. Probably due to hardware or drivers not being OpenGL 3.3 compatible..\n");
         glfwTerminate();
