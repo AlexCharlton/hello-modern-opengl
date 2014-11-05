@@ -3,7 +3,7 @@
 #include <string.h>
 #include <math.h>
 
-#include <GL/glew.h>
+#include <GLES3/gl3.h>
 #include <GLFW/glfw3.h>
 
 #define PI 3.14159265358979323846
@@ -23,10 +23,7 @@ void checkError(){
     case GL_INVALID_ENUM: fprintf(stderr, "GL error: Invalid enum\n"); break;
     case GL_INVALID_VALUE: fprintf(stderr, "GL error: Invalid value\n"); break;
     case GL_INVALID_OPERATION: fprintf(stderr, "GL error: Invalid operation\n"); break;
-    case GL_STACK_OVERFLOW: fprintf(stderr, "GL error: Stack overflow\n"); break;
-    case GL_STACK_UNDERFLOW: fprintf(stderr, "GL error: Stack underflow\n"); break;
     case GL_OUT_OF_MEMORY: fprintf(stderr, "GL error: Out of memory\n"); break;
-    case GL_TABLE_TOO_LARGE: fprintf(stderr, "GL error: Table too large\n"); break;
     default: fprintf(stderr, "GL error: Unknown\n");
     }
 }
@@ -215,22 +212,22 @@ GLfloat vertexBufferData[] = {
 GLushort indexBufferData[] = { 0, 1, 2 };
 
 static char *vertShader = "\
-#version 330\n\n\
-in vec3 vertex;\n\
-in vec3 color;\n\
+#version 120\n\n\
+attribute vec3 vertex;\n\
+attribute vec3 color;\n\
 uniform mat4 mvp;\n\
-out vec3 c;\n\
+varying vec3 c;\n\
 void main(){\n\
     gl_Position = mvp * vec4(vertex, 1.0);\n\
     c = color;\n\
 }";
 
 static char *fragShader = "\
-#version 330\n\n\
-in vec3 c;\n\
-out vec4 color;\n\
+#version 120\n\n\
+varying vec3 c;\n\
+vec4 color;\n\
 void main(){\n\
-    color = vec4(c, 1.0);\n\
+    gl_FragColor = vec4(c, 1.0);\n\
 }";
 
 void init(){
@@ -277,7 +274,7 @@ void render(){
     glUseProgram(programID);
     glUniformMatrix4fv(MVPlocation, 1, GL_TRUE, (float *) &MVP);
     glBindVertexArray(vertexArrayID);
-    glDrawElementsBaseVertex(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL, 0);
+    glDrawElements(GL_TRIANGLES, 3, GL_UNSIGNED_SHORT, NULL);
     glBindVertexArray(0);
 }
 
@@ -287,22 +284,18 @@ int main(void){
         return -1;
     }
     glfwWindowHint(GLFW_RESIZABLE, GL_FALSE);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    window = glfwCreateWindow( 640, 480, "Hello GL", NULL, NULL);
+    /* You'd think that you should do this, but it fails:
+       https://github.com/glfw/glfw/issues/19 */
+    //glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+    /* This is needed, for some reason, or the window won't open: */
+    glfwWindowHint(GLFW_ALPHA_BITS, 0);
+    window = glfwCreateWindow( 640, 480, "Hello GL ES", NULL, NULL);
     if( window == NULL ){
         fprintf( stderr, "Failed to open GLFW window. Probably due to hardware or drivers not being OpenGL 3.3 compatible..\n");
         glfwTerminate();
         return -1;
     }
     glfwMakeContextCurrent(window);
-    glewExperimental = GL_TRUE;
-    if (glewInit() != GLEW_OK){
-        fprintf(stderr, "Failed to initialize GLEW\n");
-        return -1;
-    }
-    glGetError(); // Discard unnecessary Invalid Enum caused by GLEW
     programID = makeShader(vertShader, fragShader);
     init();
     do{
